@@ -547,7 +547,7 @@ function mkPreviewMap(pts) {
 
 function mkNavMap(pts) {
   if (nMap) { nMap.remove(); nMap = null; }
-  nMap = L.map('navMap', { zoomControl: false, attributionControl: false });
+  nMap = L.map('navMap', { zoomControl: false, attributionControl: true });
   L.tileLayer(TILES, { attribution: ATTR, maxZoom: 20 }).addTo(nMap);
   L.polyline(pts, { color:'#58a6ff', weight:5, opacity:.85 }).addTo(nMap);
   L.circleMarker(pts[0],              { radius:7, color:'#3fb950', fillColor:'#3fb950', fillOpacity:1, weight:2 }).addTo(nMap);
@@ -771,6 +771,27 @@ function stopNav() {
 }
 
 // ----------------------------------------
+// DEFAULT ROUTE: same-directory route.kml
+// Manual file upload remains available if this fails.
+// ----------------------------------------
+async function loadDefaultRoute() {
+  showLoading('Loading default route...');
+  try {
+    const response = await fetch('./route.kml', { cache: 'no-store' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const content = await response.text();
+    const { coords, name } = parseKML(content);
+    if (coords.length < 2) throw new Error('No route coordinates found');
+    loadRoute(coords, name);
+  } catch (err) {
+    hideLoading();
+    showScreen('uploadScreen');
+    showToast('Default route unavailable. Please choose a KML file.');
+    console.warn('Default route load failed:', err);
+  }
+}
+
+// ----------------------------------------
 // EVENTS
 // ----------------------------------------
 
@@ -793,6 +814,9 @@ g('startBtn').addEventListener('click', startNav);
 
 // Stop navigation
 g('stopBtn').addEventListener('click', stopNav);
+
+// Automatically open the default route on page load.
+loadDefaultRoute();
 </script>
 </body>
 </html>
