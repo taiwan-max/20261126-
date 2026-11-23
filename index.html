@@ -793,6 +793,38 @@ g('startBtn').addEventListener('click', startNav);
 
 // Stop navigation
 g('stopBtn').addEventListener('click', stopNav);
+
+ // 自動載入 GitHub Pages 同一資料夾中的 route.kml
+async function loadDefaultRoute() {
+  showLoading('正在載入車掃路線...');
+
+  try {
+    const response = await fetch('./route.kml', {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('找不到 route.kml：' + response.status);
+    }
+
+    const kmlText = await response.text();
+    const { coords, name } = parseKML(kmlText);
+
+    if (coords.length < 2) {
+      throw new Error('KML 中沒有有效的路線座標');
+    }
+
+    loadRoute(coords, name);
+
+  } catch (err) {
+    hideLoading();
+    showScreen('uploadScreen');
+    console.error('自動載入失敗：', err);
+    showToast('自動載入失敗，請手動選擇 KML');
+  }
+}
+
+loadDefaultRoute();
 </script>
 </body>
 </html>
