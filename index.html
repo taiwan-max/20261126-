@@ -517,8 +517,8 @@ const S = {
 // MAPS
 // ----------------------------------------
 
-const TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
-const ATTR  = 'Tiles © Esri — Source: Esri, HERE, Garmin, USGS, NGA, and other contributors';
+const TILES = 'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}';
+const ATTR  = '地圖資料 © 內政部國土測繪中心';
 
 let pMap = null, nMap = null, posMarker = null;
 
@@ -532,7 +532,7 @@ function mkPreviewMap(pts) {
   pMap = L.map('previewMap');
   L.tileLayer(TILES, { attribution: ATTR, maxZoom: 20 }).addTo(pMap);
 
-  const poly = L.polyline(pts, { color:'#58a6ff', weight:4, opacity:.9 }).addTo(pMap);
+  const poly = L.polyline(pts, { color:'#FF8800', weight:4, opacity:.9 }).addTo(pMap);
   L.circleMarker(pts[0],              { radius:8, color:'#3fb950', fillColor:'#3fb950', fillOpacity:1, weight:2 }).bindPopup('Start').addTo(pMap);
   L.circleMarker(pts[pts.length-1], { radius:8, color:'#f85149', fillColor:'#f85149', fillOpacity:1, weight:2 }).bindPopup('End').addTo(pMap);
 
@@ -547,9 +547,9 @@ function mkPreviewMap(pts) {
 
 function mkNavMap(pts) {
   if (nMap) { nMap.remove(); nMap = null; }
-  nMap = L.map('navMap', { zoomControl: false, attributionControl: true });
+  nMap = L.map('navMap', { zoomControl: false, attributionControl: false });
   L.tileLayer(TILES, { attribution: ATTR, maxZoom: 20 }).addTo(nMap);
-  L.polyline(pts, { color:'#58a6ff', weight:5, opacity:.85 }).addTo(nMap);
+  L.polyline(pts, { color:'#EA4335', weight:5, opacity:.85 }).addTo(nMap);
   L.circleMarker(pts[0],              { radius:7, color:'#3fb950', fillColor:'#3fb950', fillOpacity:1, weight:2 }).addTo(nMap);
   L.circleMarker(pts[pts.length-1], { radius:7, color:'#f85149', fillColor:'#f85149', fillOpacity:1, weight:2 }).addTo(nMap);
   for (const t of S.turns) {
@@ -771,27 +771,6 @@ function stopNav() {
 }
 
 // ----------------------------------------
-// DEFAULT ROUTE: same-directory route.kml
-// Manual file upload remains available if this fails.
-// ----------------------------------------
-async function loadDefaultRoute() {
-  showLoading('Loading default route...');
-  try {
-    const response = await fetch('./route.kml', { cache: 'no-store' });
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    const content = await response.text();
-    const { coords, name } = parseKML(content);
-    if (coords.length < 2) throw new Error('No route coordinates found');
-    loadRoute(coords, name);
-  } catch (err) {
-    hideLoading();
-    showScreen('uploadScreen');
-    showToast('Default route unavailable. Please choose a KML file.');
-    console.warn('Default route load failed:', err);
-  }
-}
-
-// ----------------------------------------
 // EVENTS
 // ----------------------------------------
 
@@ -814,9 +793,6 @@ g('startBtn').addEventListener('click', startNav);
 
 // Stop navigation
 g('stopBtn').addEventListener('click', stopNav);
-
-// Automatically open the default route on page load.
-loadDefaultRoute();
 </script>
 </body>
 </html>
